@@ -1,28 +1,30 @@
 const express = require('express');
 const app = express();
+const userRouter = require('./Routes/userRouter.js');
+const mong = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
-const mongoose = require('mongoose');
-const userRouter = require('./routes/userRotuer');
-const setUpPassport = require("./setuppassport");
+const User = require('./Models/userModel.js');
+const setUpPassport = require("./setupPassport");
 
-require('dotenv').config();
-
-mongoose.connect(process.env.URI).then(() => console.log('Connected!'));
 
 setUpPassport();
 
-app.use(express.json());
+require('dotenv').config();
 
 app.use(session({
-    secret: "TKRv0IJs=HYqrvagQ#&!F!%V]Ww/4KiVs$s,<<MX",
     resave: false,
+    secret: process.env.SECRET,
     saveUninitialized: true
-}))
+}));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/users', userRouter);
 
+
+mong.connect(process.env.URI).then(() => { console.log("DB") });
 app.listen(process.env.PORT ?? 3000);
