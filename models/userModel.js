@@ -1,21 +1,22 @@
 const mong = require('mongoose');
-const bcrypt = require('bcryptjs');
-const schema = mong.Schema({
-    email: { type: String, required: true, unique: true },
+const bcrypt = require('bcrypt');
+
+const userSchema = mong.Schema({
+    email: { type: String, required: true },
     password: { type: String, required: true },
-    role: { type: String, default: "member" }
+    role: { type: String, default: 'member' }
 });
 
-schema.pre('save', async function () {
-    let hashedPassword = await bcrypt.hash(this.password, +process.env.SALT);
+userSchema.methods.checkPassword = async function (guess) {
+    let isOk = await bcrypt.compare(guess, this.password);
+    return isOk;
+}
+
+userSchema.pre('save', async function () {
+    let hashedPassword = await bcrypt.hash(this.password, 10);
     this.password = hashedPassword;
-});
+})
 
-schema.methods.checkPassword = async function (guess) {
-    let isMatch = await bcrypt.compare(guess, this.password);
-    return isMatch;
-};
+const userModel = mong.model('User', userSchema);
 
-const User = mong.model('User', schema);
-
-module.exports = User;
+module.exports = userModel;
